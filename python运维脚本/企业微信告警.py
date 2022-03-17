@@ -1,5 +1,7 @@
 # 企业微信告警
 # 此脚本通过企业微信应用，进行微信告警，可用于Zabbix监控
+import json
+
 import requests
 
 
@@ -23,6 +25,46 @@ class DLF:
        except Exception as e:
            return str(e)
 
-    def __get_media_id(self):
+    def __get_media_id(self, file_obj):
         get_media_url=self.url + "/media/upload?access_token={}&type=file".format(self._token)
-        #data={"media":file_obj}
+        data = {"media": file_obj}
+        try:
+            res = requests.post(url=get_media_url, files=data)
+            media_id = res.json()['media_id']
+            return media_id
+        except Exception as e:
+            return str(e)
+
+    def send_text(self, agentid, content, touser=None, toparty=None):
+        send_msg_url = self.url + "/message/send?access_token=%s" % (self._token)
+        send_data = {
+            "touser": touser,
+            "toparty": toparty,
+            "msgtype": "text",
+            "agentid": agentid,
+            "text": {
+                "content": content
+            }
+        }
+        try:
+            res = requests.post(send_msg_url, data=json.dumps(send_data))
+        except Exception as e:
+            return str(e)
+
+    def send_image(self, agentid, file_obj, touser=None, toparty=None):
+        media_id = self._get_media_id(file_obj)
+        send_msg_url = self.url + "/message/send?access_token=%s" % (self._token)
+        send_data = {
+            "touser": touser,
+            "toparty": toparty,
+            "msgtype": "image",
+            "agentid": agentid,
+            "image": {
+                "media_id": media_id
+            }
+        }
+
+        try:
+            res = requests.post(send_msg_url, data=json.dumps(send_data))
+        except Exception as e:
+            return str(e)
