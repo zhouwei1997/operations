@@ -1,0 +1,25 @@
+---
+# 安装vsftpd服务并设置为开机自启动
+# 禁止匿名用户登录
+- hosts: test_vm
+  remote_user: root
+
+  tasks:
+    
+  - name: 安装vsftpd服务
+    yum: name=vsftpd state=latest
+
+  - name: 修改vsftpd的配置文件
+    copy: src=/etc/vsftpd/vsftpd.conf dest=/etc/vsftpd/vsftpd.conf
+
+    notify:
+    - restart vsftpd
+
+  - name: 启动服务设置开机自启动
+    service: name=vsftpd state=started enabled=yes
+
+  
+    
+  handlers:
+    - name: 重启vsftpd
+      service: name=vsftpd state=restarted
